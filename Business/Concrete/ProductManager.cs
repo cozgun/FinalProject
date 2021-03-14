@@ -3,6 +3,9 @@ using Business.BusinessAspects.Autofac;
 using Business.CCC;
 using Business.Constants;
 using Business.ValidationRules.FluentValidation;
+using Core.Aspects.Autofac;
+using Core.Aspects.Autofac.Performance;
+using Core.Aspects.Autofac.Transaction;
 using Core.Aspects.Autofac.Validation;
 using Core.CrossCuttingConcerns.Validation;
 using Core.Utilities.Business;
@@ -31,6 +34,7 @@ namespace Business.Concrete
         //Claim
         [SecuredOperation("product.add")]
         [ValidationAspect(typeof(ProductValidator))]
+        [CacheRemoveAspect("IProductService.Get")]
         public IResult Add(Product product)
         {
             //business codes
@@ -49,6 +53,8 @@ namespace Business.Concrete
             //ValidationTool.Validate(new ProductValidator(), product);
         }
 
+        [CacheAspect]
+        [PerformanceAspect]
         public IDataResult<List<Product>> GetAll()
         {
             if (DateTime.Now.Hour == 12)
@@ -65,6 +71,7 @@ namespace Business.Concrete
             return new SuccessDataResult<List<Product>>(_productDal.GetAll(p => p.CategoryID == Id));
         }
 
+        [CacheAspect]
         public IDataResult<Product> GetById(int ProductId)
         {
             return new SuccessDataResult<Product>(_productDal.Get(p=>p.ProductID == ProductId));
@@ -80,6 +87,8 @@ namespace Business.Concrete
             return new SuccessDataResult<List<ProductDetailDto>>(_productDal.GetProductDetails());
         }
 
+        [ValidationAspect(typeof(ProductValidator))]
+        [CacheRemoveAspect("IProductService.Get")]
         public IResult Update(Product product)
         {
             throw new NotImplementedException();
@@ -115,6 +124,17 @@ namespace Business.Concrete
             return new SuccessResult();
         }
 
+        [TransactionScopeAspect]
+        public IResult AddTransactionalTest(Product product)
+        {
+            Add(product);
+            if (product.UnitPrice < 10)
+            {
+                throw new Exception("");
+            }
+            Add(product);
+            return null;
+        }
     }
 
 }
