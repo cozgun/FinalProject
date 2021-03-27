@@ -41,7 +41,7 @@ namespace Business.Concrete
             //validation codes  -  validation kodları ile business kodları birbirine karıştırmayalım.
 
             IResult result = BusinessRules.Run(CheckIfProductNameExists(product.ProductName), 
-                CheckIfProductCountOfCategoryCorrect(product.CategoryID),
+                CheckIfProductCountOfCategoryCorrect(product.CategoryId),
                 CheckIfCategoryLimitExceeded());           
             if (result != null)
             {
@@ -54,13 +54,13 @@ namespace Business.Concrete
         }
 
         [CacheAspect]
-        [PerformanceAspect]
+        //[PerformanceAspect]
         public IDataResult<List<Product>> GetAll()
         {
-            if (DateTime.Now.Hour == 12)
-            {
-                return new ErrorDataResult<List<Product>>(Messages.MaintenanceTime);
-            }
+            //if (DateTime.Now.Hour == 12)
+            //{
+            //    return new ErrorDataResult<List<Product>>(Messages.MaintenanceTime);
+            //}
             ////İş kodları
             return new SuccessDataResult<List<Product>>(_productDal.GetAll(),Messages.ProductsListed);
 
@@ -68,13 +68,13 @@ namespace Business.Concrete
 
         public IDataResult<List<Product>> GetAllByCategoryId(int Id)
         {
-            return new SuccessDataResult<List<Product>>(_productDal.GetAll(p => p.CategoryID == Id));
+            return new SuccessDataResult<List<Product>>(_productDal.GetAll(p => p.CategoryId == Id));
         }
 
         [CacheAspect]
         public IDataResult<Product> GetById(int ProductId)
         {
-            return new SuccessDataResult<Product>(_productDal.Get(p=>p.ProductID == ProductId));
+            return new SuccessDataResult<Product>(_productDal.Get(p=>p.ProductId == ProductId));
         }
 
         public IDataResult<List<Product>> GetByUnitPrice(decimal min, decimal max)
@@ -96,7 +96,7 @@ namespace Business.Concrete
 
         private IResult CheckIfProductCountOfCategoryCorrect(int categoryId)
         {
-            var result = _productDal.GetAll(p => p.CategoryID == categoryId).Count();
+            var result = _productDal.GetAll(p => p.CategoryId == categoryId).Count();
             if (result >= 10)
             {
                 return new ErrorResult(Messages.ProductCountOfCategoryError);
